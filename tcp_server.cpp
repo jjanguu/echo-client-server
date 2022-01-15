@@ -37,31 +37,31 @@ void *threadServer(void * client_fd){
     char buf[BUFSIZE];
     int Client_fd =  *(int *)client_fd;
     while (true) {
-		int readBuf = recv(Client_fd, buf, BUFSIZE - 1, 0);
+	int readBuf = recv(Client_fd, buf, BUFSIZE - 1, 0);
         if (readBuf == 0 || readBuf == -1) {
-			perror("recv");
+		perror("recv");
+		break;
+	}
+	buf[readBuf] = '\0';
+	printf("%s", buf);
+	fflush(stdout);
+
+	if (param.echo) {
+		readBuf = ::send(Client_fd, buf, readBuf, 0);
+		if (readBuf == 0 || readBuf == -1) {
+			perror("send");
 			break;
 		}
-		buf[readBuf] = '\0';
-		printf("%s", buf);
-		fflush(stdout);
-
-		if (param.echo) {
-			readBuf = ::send(Client_fd, buf, readBuf, 0);
-			if (readBuf == 0 || readBuf == -1) {
-				perror("send");
-				break;
-			}
-		}
+	}
 
         if (param.broadcast) {
             for(auto fd : broadcast){
                 if (fd != Client_fd)
                 send(fd, buf, readBuf, 0);
             }
-		}
-
 	}
+
+    }
     printf("disconnected\n");
     close(Client_fd);
 }
